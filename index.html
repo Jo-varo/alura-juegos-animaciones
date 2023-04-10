@@ -19,12 +19,14 @@
         return { canvas: newCanvas, pointer };
       }
 
-      function drawSquares(pointer, color, positions) {
+      function drawSquares(pointer, color, positions, border = false) {
         pointer.fillStyle = color;
-        //postions x,y,w,h
+        //positions = [x,y,w,h]
         pointer.fillRect(...positions);
-        // pointer.strokeStyle = 'black';
-        // pointer.strokeRect(...positions);
+        if (border) {
+          pointer.strokeStyle = 'black';
+          pointer.strokeRect(...positions);
+        }
       }
 
       function freeDraw(pointer, color = '', ...positions) {
@@ -170,6 +172,113 @@
         }
         setInterval(animate, 5);
       }
+
+      function game() {
+        const { pointer, canvas } = newCanvas();
+        const r = 10;
+        let goalX, goalY;
+
+        drawBackground();
+
+        function drawTarget(x, y) {
+          drawCircles(pointer, 'red', [x, y, r + 20]);
+          drawCircles(pointer, 'white', [x, y, r + 10]);
+          drawCircles(pointer, 'red', [x, y, r]);
+        }
+
+        function randomNumber(n) {
+          n -= r * 2; // n = n - r*2
+          return Math.round(Math.random() * n + r); //round(random(n)+r)
+        }
+
+        function drawBackground() {
+          drawSquares(pointer, 'cornsilk', [0, 0, 600, 400], 1);
+        }
+
+        function updateRender() {
+          pointer.clearRect(0, 0, 600, 400); //clear canvas
+          drawBackground(); //draw background again
+          const [randomX, randomY] = [randomNumber(600), randomNumber(400)];
+          [goalX, goalY] = [randomX, randomY];
+          drawTarget(randomX, randomY);
+        }
+
+        setInterval(updateRender, 500);
+
+        function scoring(evt) {
+          const [x, y] = [evt.offsetX, evt.offsetY];
+          if (
+            x < goalX + r &&
+            x > goalX - r &&
+            y < goalY + r &&
+            y > goalY - r
+          ) {
+            alert('!Ganaste!');
+          }
+        }
+
+        canvas.onclick = scoring;
+      }
+
+      (function board() {
+        const { pointer, canvas } = newCanvas();
+        const colorSquareSize = 50;
+        let chosenColor = 'black';
+
+        drawSquares(pointer, 'honeydew', [0, 0, 600, 400], true); //draw Background
+
+        let isDrawing = false;
+
+        function drawInBoard(evt) {
+          if (!isDrawing) return;
+          const [x, y] = [evt.offsetX, evt.offsetY];
+          drawCircles(pointer, chosenColor, [x, y, 5]);
+        }
+
+        canvas.onmousemove = drawInBoard;
+
+        function disableDraw() {
+          drawColorsPalette(colorSquareSize);
+          isDrawing = false;
+        }
+
+        function enableDraw() {
+          isDrawing = true;
+        }
+
+        canvas.onmousedown = enableDraw;
+        canvas.onmouseup = disableDraw;
+        canvas.onmouseleave = disableDraw;
+
+        const colors = ['red', 'green', 'blue', 'yellow', 'orange', 'peru','white','aquamarine'];
+        function drawColorsPalette(colorSize = 60) {
+          let axisX = 0;
+          colors.map((color) => {
+            drawSquares(pointer, color, [axisX, 0, colorSize, colorSize], true);
+            axisX += colorSize;
+          });
+        }
+
+        drawColorsPalette(colorSquareSize);
+
+        function pickColor(evt) {
+          const [x, y] = [evt.offsetX, evt.offsetY];
+          colors.map((color, i) => {
+            setColor([x, y], color, colorSquareSize, i);
+          });
+        }
+
+        function setColor(pointerPosition, color = '', size, index) {
+          const [x, y] = pointerPosition;
+          let fx = size * index; //position of the square in x
+          let sx = size * (index + 1); //position of the square in x plus size
+          if (x > fx && x < sx && y > 0 && y < size) {
+            chosenColor = color;
+          }
+        }
+
+        canvas.onclick = pickColor;
+      })();
     </script>
   </body>
 </html>
