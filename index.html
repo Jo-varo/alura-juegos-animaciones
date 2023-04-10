@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alura Canvas</title>
+  </head>
+  <body>
+    <canvas width="600" height="400"> </canvas>
+    <script type="module">
+      function newCanvas(width = 600, height = 400) {
+        const newCanvas = document.createElement('canvas');
+        newCanvas.width = 600;
+        newCanvas.height = 400;
+        const canvas = document.querySelector('canvas');
+        canvas.after(newCanvas);
+        const pointer = newCanvas.getContext('2d');
+        return { canvas: newCanvas, pointer };
+      }
+
+      function drawSquares(pointer, color, positions) {
+        pointer.fillStyle = color;
+        //postions x,y,w,h
+        pointer.fillRect(...positions);
+        // pointer.strokeStyle = 'black';
+        // pointer.strokeRect(...positions);
+      }
+
+      function freeDraw(pointer, color = '', ...positions) {
+        if (positions.length < 2) return;
+
+        pointer.fillStyle = color;
+        pointer.beginPath();
+
+        pointer.moveTo(...positions[0]);
+        positions.shift();
+
+        positions.map((p) => {
+          //x,y
+          pointer.lineTo(...p);
+        });
+
+        pointer.fill();
+      }
+
+      function drawCircles(pointer, color, positions = [0, 0, 0]) {
+        const [x, y, r] = positions;
+        pointer.fillStyle = color;
+        pointer.beginPath();
+        //x,y,radio,angulo inicio, angulo final
+        pointer.arc(x, y, r, 0, 2 * 3.14);
+        pointer.fill();
+      }
+
+      function writeText(pointer, color, text, positions) {
+        const [x, y] = positions;
+        pointer.font = '15px Georgia';
+        pointer.fillText(text, x, y);
+      }
+
+      function drawAtClick(evt) {
+        if (!myPointer) return;
+        const pointer = myPointer;
+        const [x, y] = [evt.offsetX, evt.offsetY];
+        drawCircles(pointer, color, [x, y, 10]);
+      }
+
+      function curso() {
+        //lo que se hizo en el curso
+        let canvas = document.querySelector('canvas');
+        let pincel = canvas.getContext('2d');
+
+        drawSquares(pincel, 'lightgrey', [0, 0, 600, 400]);
+        drawSquares(pincel, 'green', [0, 0, 200, 400]);
+        drawSquares(pincel, 'red', [400, 0, 200, 400]);
+
+        pincel.fillStyle = 'yellow';
+        freeDraw(pincel, '', [300, 200], [200, 400], [400, 400]);
+
+        pincel.fillStyle = 'blue';
+        pincel.beginPath();
+        pincel.arc(300, 200, 50, 0, 2 * 3.14);
+        pincel.fill();
+        pincel.font = '15px Georgia';
+        pincel.fillStyle = 'aquamarine';
+        pincel.fillText('hola', 0, 0);
+      }
+
+      function creeper() {
+        const { pointer } = newCanvas();
+        drawSquares(pointer, 'darkgreen', [75, 50, 350, 300]);
+        drawSquares(pointer, 'black', [125, 110, 90, 90]);
+        drawSquares(pointer, 'black', [285, 110, 90, 90]);
+        drawSquares(pointer, 'black', [215, 200, 70, 100]); //4
+        drawSquares(pointer, 'black', [175, 240, 40, 110]); //5
+        drawSquares(pointer, 'black', [285, 240, 40, 110]); //6
+      }
+
+      function escuadra() {
+        const { pointer } = newCanvas();
+        pointer.fillStyle = 'yellow';
+
+        pointer.fillStyle = 'black';
+        freeDraw(pointer, 'black', [50, 50], [50, 400], [400, 400]);
+        freeDraw(pointer, 'white', [100, 175], [100, 350], [275, 350]);
+      }
+
+      function flor() {
+        const { pointer } = newCanvas();
+        drawCircles(pointer, 'red', [300, 200, 50]);
+        drawCircles(pointer, 'yellow', [300, 100, 50]);
+        drawCircles(pointer, 'blue', [300, 300, 50]);
+        drawCircles(pointer, 'black', [400, 200, 50]);
+        drawCircles(pointer, 'orange', [200, 200, 50]);
+      }
+
+      function dibujarBarra(pointer, x, y, serie, colores, texto) {
+        if (serie.length !== 5) return;
+        writeText(pointer, 'black', texto, [x + 20, y - 10]);
+        serie.map((s, i) => {
+          const h = s * 3;
+          const positions = [x, y, 150, h];
+          drawSquares(pointer, colores[i], positions);
+          y += h;
+        });
+        console.log(x, y);
+      }
+
+      function graficaBarras() {
+        let serie2009 = [6, 47, 41, 3, 3];
+        let serie2019 = [81, 9, 3, 3, 4];
+        let colores = ['blue', 'green', 'yellow', 'red', 'gray'];
+
+        const { pointer } = newCanvas();
+        dibujarBarra(pointer, 50, 50, serie2009, colores, '2009');
+        dibujarBarra(pointer, 300, 50, serie2019, colores, '2019');
+      }
+
+      let color, myPointer;
+      function changeColor() {
+        const colors = ['blue', 'red', 'green'];
+        if (color === colors[0]) return (color = colors[1]);
+        if (color === colors[1]) return (color = colors[2]);
+        if (color === colors[2]) return (color = colors[0]);
+      }
+      function writeAtClick() {
+        const { canvas, pointer } = newCanvas();
+        myPointer = pointer;
+        drawSquares(pointer, 'gray', [0, 0, 600, 400]);
+        canvas.onclick = drawAtClick;
+        color = 'blue';
+        canvas.oncontextmenu = changeColor;
+      }
+
+      function animations() {
+        //start canvas
+        const { pointer } = newCanvas();
+        drawSquares(pointer, 'white', [0, 0, 600, 400]);
+
+        let x = 0,
+          isBack = false;
+        function animate() {
+          pointer.clearRect(0, 0, 600, 400);
+          drawCircles(pointer, 'red', [x, 100, 10]);
+          isBack ? x-- : x++;
+          if (x === 600 || x === 0) {
+            isBack = !isBack;
+          }
+        }
+        setInterval(animate, 5);
+      }
+    </script>
+  </body>
+</html>
